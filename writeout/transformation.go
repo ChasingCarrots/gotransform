@@ -3,10 +3,11 @@ package writeout
 import (
 	"bytes"
 	"go/format"
-	"gotransform"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/chasingcarrots/gotransform"
 
 	"github.com/pkg/errors"
 )

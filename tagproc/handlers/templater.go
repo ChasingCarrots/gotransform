@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"go/ast"
-	"gotransform"
-	"gotransform/tagproc"
 	"path/filepath"
 	"text/template"
+
+	"github.com/chasingcarrots/gotransform"
+	"github.com/chasingcarrots/gotransform/tagproc"
 )
 
 // NewTemplater returns a TagHandler that instantiates a Go-template for each tagged

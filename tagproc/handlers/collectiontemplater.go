@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"go/ast"
-	"gotransform"
-	"gotransform/tagproc"
 	"text/template"
+
+	"github.com/chasingcarrots/gotransform"
+	"github.com/chasingcarrots/gotransform/tagproc"
 )
 
 // NewCollectionTemplater creates a TagHandler that will collect the names of all tagged declarations

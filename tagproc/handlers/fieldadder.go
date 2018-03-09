@@ -3,8 +3,9 @@ package handlers
 import (
 	"go/ast"
 	"go/token"
-	"gotransform/tagproc"
 	"strings"
+
+	"github.com/chasingcarrots/gotransform/tagproc"
 
 	"github.com/pkg/errors"
 

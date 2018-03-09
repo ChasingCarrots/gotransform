@@ -3,8 +3,9 @@ package tagproc
 import (
 	"go/ast"
 	"go/token"
-	"gotransform"
 	"strings"
+
+	"github.com/chasingcarrots/gotransform"
 
 	"github.com/pkg/errors"
 )
@@ -71,6 +72,8 @@ func (tp *TagProcessor) Finalize() error {
 	}
 	return nil
 }
+
+func (tp *TagProcessor) Prepare() error { return nil }
 
 // Apply goes through the given file, looks for structs with tags, and calls
 // all the respective tag processors on the structs.
