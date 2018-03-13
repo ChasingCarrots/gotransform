@@ -34,15 +34,15 @@ func WriteGoFile(path string, reader io.Reader) error {
 
 	file, err := os.Create(path)
 	if err != nil {
-		return errors.Wrapf(err, "WriteGoFile: File creation failed")
+		return errors.Wrapf(err, "WriteGoFile: File creation failed for %s", path)
 	}
 	defer file.Close()
 
 	_, err = file.Write(formattedCode)
 	if err != nil {
-		return errors.Wrapf(err, "WriteGoFile: Write failed")
+		return errors.Wrapf(err, "WriteGoFile: Write failed for %s", path)
 	}
-	return errors.Wrapf(formatErr, "WriteGoFile: Formatting failed")
+	return errors.Wrapf(formatErr, "WriteGoFile: Formatting failed for", path)
 }
 
 // WriteGoTemplate applies the given template to the value and writes it out as a Go
