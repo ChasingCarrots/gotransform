@@ -8,8 +8,8 @@ import (
 	"github.com/chasingcarrots/gotransform/tagproc"
 )
 
-// NewCollectionTemplater creates a TagHandler that will collect the names of all tagged declarations
-// and pass them to a Go template as a collection.
+// NewCollectionTemplater creates a TagHandler that will collect the names and tags of all tagged
+// declarations and pass them to a Go template as a collection.
 // The outputPath parameter determines the path of the output file.
 func NewCollectionTemplater(outputPath string, template *template.Template) *CollectionTemplater {
 	return &CollectionTemplater{
@@ -22,14 +22,18 @@ func NewCollectionTemplater(outputPath string, template *template.Template) *Col
 type CollectionTemplater struct {
 	template   *template.Template
 	outputPath string
-	collected  []string
+	collected  []templateEntry
 }
 
 func (ct *CollectionTemplater) BeginFile(context tagproc.TagContext) error  { return nil }
 func (ct *CollectionTemplater) FinishFile(context tagproc.TagContext) error { return nil }
 
 func (ct *CollectionTemplater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
-	ct.collected = append(ct.collected, obj.Name)
+	entry, err := makeTemplateEntry(obj.Name, tagLiteral)
+	if err != nil {
+		return err
+	}
+	ct.collected = append(ct.collected, entry)
 	return nil
 }
 
