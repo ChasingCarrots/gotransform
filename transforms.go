@@ -75,3 +75,19 @@ func AddNamedImport(name, path string) FileTransformation {
 		},
 	}
 }
+
+func RemoveImport(path string) FileTransformation {
+	path = `"` + path + `"`
+	return &genericTransformation{
+		apply: func(context FileContext) error {
+			imports := context.File.Imports
+			for i := range imports {
+				if imports[i].Path.Value == path {
+					imports[i].Path.Value = ""
+					break
+				}
+			}
+			return nil
+		},
+	}
+}
