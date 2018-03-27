@@ -33,13 +33,18 @@ type InceptionTemplater struct {
 	outputPath string
 	collected  []templateEntry
 	parameters []string
+	delay      bool
+}
+
+func (ct *InceptionTemplater) Delay() {
+	ct.delay = true
 }
 
 func (ct *InceptionTemplater) BeginFile(context tagproc.TagContext) error  { return nil }
 func (ct *InceptionTemplater) FinishFile(context tagproc.TagContext) error { return nil }
 
 func (ct *InceptionTemplater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
-	entry, err := makeTemplateEntry(obj.Name, tagLiteral)
+	entry, err := makeTemplateEntry(context, obj, tagLiteral)
 	if err != nil {
 		return err
 	}
@@ -48,6 +53,13 @@ func (ct *InceptionTemplater) HandleTag(context tagproc.TagContext, obj *ast.Obj
 }
 
 func (ct *InceptionTemplater) Finalize() error {
+	if !ct.delay {
+		return ct.PerformInception()
+	}
+	return nil
+}
+
+func (ct *InceptionTemplater) PerformInception() error {
 	if err := gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.collected); err != nil {
 		return err
 	}
@@ -60,7 +72,7 @@ func (ct *InceptionTemplater) Finalize() error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return errors.Wrapf(err, "cmd.Run() failed with stderr: %s\nstdout:", stderr.String(), stdout.String())
+		return errors.Wrapf(err, "Inception cmd.Run() failed with stderr: %s\nstdout:", stderr.String(), stdout.String())
 	}
 	fmt.Println(stdout.String())
 	return nil

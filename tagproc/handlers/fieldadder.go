@@ -59,7 +59,7 @@ func addField(struc *ast.StructType, name, typ, tag string) {
 	}
 	if len(tag) > 0 {
 		field.Tag = new(ast.BasicLit)
-		field.Tag.Value = `"` + tag + `"`
+		field.Tag.Value = "`" + tag + "`"
 		field.Tag.Kind = token.STRING
 	}
 	struc.Fields.List = append(struc.Fields.List, field)

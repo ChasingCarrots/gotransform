@@ -23,13 +23,18 @@ type CollectionTemplater struct {
 	template   *template.Template
 	outputPath string
 	collected  []templateEntry
+	delay      bool
+}
+
+func (ct *CollectionTemplater) Delay() {
+	ct.delay = true
 }
 
 func (ct *CollectionTemplater) BeginFile(context tagproc.TagContext) error  { return nil }
 func (ct *CollectionTemplater) FinishFile(context tagproc.TagContext) error { return nil }
 
 func (ct *CollectionTemplater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
-	entry, err := makeTemplateEntry(obj.Name, tagLiteral)
+	entry, err := makeTemplateEntry(context, obj, tagLiteral)
 	if err != nil {
 		return err
 	}
@@ -38,5 +43,12 @@ func (ct *CollectionTemplater) HandleTag(context tagproc.TagContext, obj *ast.Ob
 }
 
 func (ct *CollectionTemplater) Finalize() error {
+	if !ct.delay {
+		return ct.WriteTemplate()
+	}
+	return nil
+}
+
+func (ct *CollectionTemplater) WriteTemplate() error {
 	return gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.collected)
 }

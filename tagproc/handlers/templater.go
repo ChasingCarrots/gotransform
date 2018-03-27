@@ -28,34 +28,58 @@ type Templater struct {
 	outputPath string
 	template   *template.Template
 	makeName   func(string) string
+	entries    []templateEntry
+	delay      bool
+}
+
+func (t *Templater) Delay() {
+	t.delay = true
 }
 
 type templateEntry struct {
-	Name string
-	Tags map[string]string
+	Name    string
+	Package string
+	Tags    map[string]string
 }
 
-func makeTemplateEntry(name, tagLiteral string) (templateEntry, error) {
+func makeTemplateEntry(context tagproc.TagContext, obj *ast.Object, tagLiteral string) (templateEntry, error) {
 	tags, err := tagparser.Parse(tagLiteral)
 	if err != nil {
 		return templateEntry{}, err
 	}
 	return templateEntry{
-		Name: name,
-		Tags: tagparser.Unique(tags),
+		Name:    obj.Name,
+		Package: context.File.Name.Name,
+		Tags:    tagparser.Unique(tags),
 	}, nil
 }
 
 func (_ *Templater) BeginFile(context tagproc.TagContext) error  { return nil }
 func (_ *Templater) FinishFile(context tagproc.TagContext) error { return nil }
-func (_ *Templater) Finalize() error                             { return nil }
 
-func (ct *Templater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
-	name := ct.makeName(obj.Name)
-	output := filepath.Join(ct.outputPath, name)
-	entry, err := makeTemplateEntry(obj.Name, tagLiteral)
+func (t *Templater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
+	entry, err := makeTemplateEntry(context, obj, tagLiteral)
 	if err != nil {
 		return err
 	}
-	return gotransform.WriteGoTemplate(output, ct.template, entry)
+	t.entries = append(t.entries, entry)
+	return nil
+}
+
+func (t *Templater) Finalize() error {
+	if !t.delay {
+		return t.WriteTemplates()
+	}
+	return nil
+}
+
+func (t *Templater) WriteTemplates() error {
+	for _, entry := range t.entries {
+		name := t.makeName(entry.Name)
+		output := filepath.Join(t.outputPath, name)
+		if err := gotransform.WriteGoTemplate(output, t.template, entry); err != nil {
+			return err
+		}
+	}
+	return nil
 }
