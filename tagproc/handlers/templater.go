@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/chasingcarrots/gotransform/tagparser"
-
 	"github.com/chasingcarrots/gotransform"
 	"github.com/chasingcarrots/gotransform/tagproc"
 )
@@ -25,45 +23,25 @@ func NewTemplater(outputPath string, template *template.Template, makeName func(
 }
 
 type Templater struct {
+	templateCollection
 	outputPath string
 	template   *template.Template
 	makeName   func(string) string
-	entries    []templateEntry
 	delay      bool
 }
 
+// Delay prevents any generation of files in the Finalize function and instead requires you to call
+// WriteTemplates at another time that is more suitable for your uses. This might be required when
+// using an inception-based approach.
 func (t *Templater) Delay() {
 	t.delay = true
-}
-
-type templateEntry struct {
-	Name    string
-	Package string
-	Tags    map[string]string
-}
-
-func makeTemplateEntry(context tagproc.TagContext, obj *ast.Object, tagLiteral string) (templateEntry, error) {
-	tags, err := tagparser.Parse(tagLiteral)
-	if err != nil {
-		return templateEntry{}, err
-	}
-	return templateEntry{
-		Name:    obj.Name,
-		Package: context.File.Name.Name,
-		Tags:    tagparser.Unique(tags),
-	}, nil
 }
 
 func (_ *Templater) BeginFile(context tagproc.TagContext) error  { return nil }
 func (_ *Templater) FinishFile(context tagproc.TagContext) error { return nil }
 
 func (t *Templater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
-	entry, err := makeTemplateEntry(context, obj, tagLiteral)
-	if err != nil {
-		return err
-	}
-	t.entries = append(t.entries, entry)
-	return nil
+	return t.addEntry(context, obj, tagLiteral)
 }
 
 func (t *Templater) Finalize() error {

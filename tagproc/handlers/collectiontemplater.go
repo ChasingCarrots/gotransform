@@ -15,14 +15,13 @@ func NewCollectionTemplater(outputPath string, template *template.Template) *Col
 	return &CollectionTemplater{
 		outputPath: outputPath,
 		template:   template,
-		collected:  nil,
 	}
 }
 
 type CollectionTemplater struct {
+	templateCollection
 	template   *template.Template
 	outputPath string
-	collected  []templateEntry
 	delay      bool
 }
 
@@ -34,12 +33,7 @@ func (ct *CollectionTemplater) BeginFile(context tagproc.TagContext) error  { re
 func (ct *CollectionTemplater) FinishFile(context tagproc.TagContext) error { return nil }
 
 func (ct *CollectionTemplater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
-	entry, err := makeTemplateEntry(context, obj, tagLiteral)
-	if err != nil {
-		return err
-	}
-	ct.collected = append(ct.collected, entry)
-	return nil
+	return ct.addEntry(context, obj, tagLiteral)
 }
 
 func (ct *CollectionTemplater) Finalize() error {
@@ -50,5 +44,5 @@ func (ct *CollectionTemplater) Finalize() error {
 }
 
 func (ct *CollectionTemplater) WriteTemplate() error {
-	return gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.collected)
+	return gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.entries)
 }

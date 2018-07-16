@@ -23,19 +23,21 @@ func NewInceptionTemplater(outputPath string, template *template.Template, param
 	return &InceptionTemplater{
 		outputPath: outputPath,
 		template:   template,
-		collected:  nil,
 		parameters: parameters,
 	}
 }
 
 type InceptionTemplater struct {
+	templateCollection
 	template   *template.Template
 	outputPath string
-	collected  []templateEntry
 	parameters []string
 	delay      bool
 }
 
+// Delay prevents any generation of files in the Finalize function and instead requires you to call
+// PerformInception at another time that is more suitable for your uses. This might be required when
+// using an inception-based approach.
 func (ct *InceptionTemplater) Delay() {
 	ct.delay = true
 }
@@ -44,12 +46,7 @@ func (ct *InceptionTemplater) BeginFile(context tagproc.TagContext) error  { ret
 func (ct *InceptionTemplater) FinishFile(context tagproc.TagContext) error { return nil }
 
 func (ct *InceptionTemplater) HandleTag(context tagproc.TagContext, obj *ast.Object, tagLiteral string) error {
-	entry, err := makeTemplateEntry(context, obj, tagLiteral)
-	if err != nil {
-		return err
-	}
-	ct.collected = append(ct.collected, entry)
-	return nil
+	return ct.addEntry(context, obj, tagLiteral)
 }
 
 func (ct *InceptionTemplater) Finalize() error {
@@ -60,7 +57,7 @@ func (ct *InceptionTemplater) Finalize() error {
 }
 
 func (ct *InceptionTemplater) PerformInception() error {
-	if err := gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.collected); err != nil {
+	if err := gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.entries); err != nil {
 		return err
 	}
 
