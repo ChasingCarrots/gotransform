@@ -54,3 +54,22 @@ func WriteGoTemplate(path string, tmpl *template.Template, value interface{}) er
 	}
 	return WriteGoFile(path, &buf)
 }
+
+func WriteTemplate(path string, tmpl *template.Template, value interface{}) error {
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, value); err != nil {
+		return errors.Wrapf(err, "WriteGoTemplate: Failed to write template to %s", path)
+	}
+	return writeFile(path, &buf)
+}
+
+func writeFile(path string, src io.Reader) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return errors.Wrapf(err, "writeFile: File creation failed for %s", path)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, src)
+	return errors.Wrapf(err, "writeFile: Write failed for %s", path)
+}

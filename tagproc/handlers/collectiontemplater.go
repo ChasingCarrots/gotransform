@@ -11,18 +11,20 @@ import (
 // NewCollectionTemplater creates a TagHandler that will collect the names and tags of all tagged
 // declarations and pass them to a Go template as a collection.
 // The outputPath parameter determines the path of the output file.
-func NewCollectionTemplater(outputPath string, template *template.Template) *CollectionTemplater {
+func NewCollectionTemplater(outputPath string, template *template.Template, formatGoCode bool) *CollectionTemplater {
 	return &CollectionTemplater{
-		outputPath: outputPath,
-		template:   template,
+		outputPath:   outputPath,
+		template:     template,
+		formatGoCode: formatGoCode,
 	}
 }
 
 type CollectionTemplater struct {
 	templateCollection
-	template   *template.Template
-	outputPath string
-	delay      bool
+	template     *template.Template
+	outputPath   string
+	formatGoCode bool
+	delay        bool
 }
 
 func (ct *CollectionTemplater) Delay() {
@@ -44,5 +46,9 @@ func (ct *CollectionTemplater) Finalize() error {
 }
 
 func (ct *CollectionTemplater) WriteTemplate() error {
-	return gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.entries)
+	if ct.formatGoCode {
+		return gotransform.WriteGoTemplate(ct.outputPath, ct.template, ct.entries)
+	} else {
+		return gotransform.WriteTemplate(ct.outputPath, ct.template, ct.entries)
+	}
 }

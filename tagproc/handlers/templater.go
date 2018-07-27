@@ -14,20 +14,22 @@ import (
 // outputPath and makeName control the path to write the instantiated templates to and how
 // the declared name of a struct or interface corresponds to the file name. The template
 // parameter specifies the template that should be instantiated.
-func NewTemplater(outputPath string, template *template.Template, makeName func(string) string) *Templater {
+func NewTemplater(outputPath string, template *template.Template, makeName func(string) string, formatGoCode bool) *Templater {
 	return &Templater{
-		outputPath: outputPath,
-		template:   template,
-		makeName:   makeName,
+		outputPath:   outputPath,
+		template:     template,
+		makeName:     makeName,
+		formatGoCode: formatGoCode,
 	}
 }
 
 type Templater struct {
 	templateCollection
-	outputPath string
-	template   *template.Template
-	makeName   func(string) string
-	delay      bool
+	outputPath   string
+	template     *template.Template
+	makeName     func(string) string
+	formatGoCode bool
+	delay        bool
 }
 
 // Delay prevents any generation of files in the Finalize function and instead requires you to call
@@ -55,8 +57,14 @@ func (t *Templater) WriteTemplates() error {
 	for _, entry := range t.entries {
 		name := t.makeName(entry.Name)
 		output := filepath.Join(t.outputPath, name)
-		if err := gotransform.WriteGoTemplate(output, t.template, entry); err != nil {
-			return err
+		if t.formatGoCode {
+			if err := gotransform.WriteGoTemplate(output, t.template, entry); err != nil {
+				return err
+			}
+		} else {
+			if err := gotransform.WriteTemplate(output, t.template, entry); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
